@@ -1,0 +1,85 @@
+version: '3.9'
+
+services:
+
+  # ── MySQL ─────────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: sjp-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: smart_job_portal
+      MYSQL_USER: sjpuser
+      MYSQL_PASSWORD: sjppassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./backend/src/main/resources/sample_data.sql:/docker-entrypoint-initdb.d/02-sample_data.sql
+    networks:
+      - sjp-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # ── Backend ───────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sjp-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/smart_job_portal?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: sjpuser
+      SPRING_DATASOURCE_PASSWORD: sjppassword
+      APP_JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      APP_JWT_EXPIRATION: 900000
+      APP_ADMIN_EMAIL: admin@smartjobportal.com
+      APP_ADMIN_PASSWORD: Admin@123
+      APP_ADMIN_NAME: System Admin
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "false"
+      SPRING_PROFILES_ACTIVE: prod
+    ports:
+      - "8080:8080"
+    volumes:
+      - resume_uploads:/app/uploads
+    networks:
+      - sjp-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api/skills 2>/dev/null | grep -q '\\[' || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+  # ── Frontend ──────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sjp-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    networks:
+      - sjp-network
+
+networks:
+  sjp-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  resume_uploads:
