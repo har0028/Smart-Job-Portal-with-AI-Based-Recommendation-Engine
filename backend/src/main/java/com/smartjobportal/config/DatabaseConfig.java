@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Primary;
 
 import javax.sql.DataSource;
 import java.net.URI;
-import java.net.URISyntaxException;
 
 @Configuration
 public class DatabaseConfig {
@@ -37,7 +36,7 @@ public class DatabaseConfig {
             password = System.getenv("MYSQLPASSWORD");
         }
 
-        String driverClassName = "com.mysql.cj.jdbc.Driver";
+        String driverClassName = "org.h2.Driver";
 
         if (dbUrl != null && (dbUrl.startsWith("postgres://") || dbUrl.startsWith("postgresql://") || dbUrl.startsWith("jdbc:postgresql://"))) {
             driverClassName = "org.postgresql.Driver";
@@ -60,16 +59,20 @@ public class DatabaseConfig {
 
                     dbUrl = "jdbc:postgresql://" + host + ":" + port + path + "?sslmode=require";
                     log.info("Configured PostgreSQL datasource for Render: host={}:{}, database={}", host, port, path);
-                } catch (URISyntaxException e) {
+                } catch (Exception e) {
                     log.error("Failed to parse PostgreSQL database URL: {}", dbUrl, e);
                 }
             } else if (!dbUrl.contains("sslmode=")) {
                 dbUrl += (dbUrl.contains("?") ? "&" : "?") + "sslmode=require";
             }
-        } else if (dbUrl == null || dbUrl.isBlank()) {
-            dbUrl = "jdbc:mysql://localhost:3306/smart_job_portal?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
-            if (username == null) username = "root";
-            if (password == null) password = "1234";
+        } else if (dbUrl != null && dbUrl.startsWith("jdbc:mysql://")) {
+            driverClassName = "com.mysql.cj.jdbc.Driver";
+        } else {
+            dbUrl = "jdbc:h2:mem:smartjobdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL";
+            driverClassName = "org.h2.Driver";
+            username = "sa";
+            password = "";
+            log.info("Using embedded H2 database fallback for application context");
         }
 
         log.info("Initializing DataSource with driver: {} and URL: {}", driverClassName, dbUrl);

@@ -12,3 +12,11 @@ services:
         value: prod
       - key: SPRING_JPA_HIBERNATE_DDL_AUTO
         value: update
+      - key: SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT
+        value: org.hibernate.dialect.PostgreSQLDialect
+      - key: APP_JWT_SECRET
+        value: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      - key: DATABASE_URL
+        fromDatabase:
+          name: smart-job-portal-db
+          property: connectionString
