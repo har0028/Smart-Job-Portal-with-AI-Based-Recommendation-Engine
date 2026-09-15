@@ -42,6 +42,13 @@ public class User {
     @Builder.Default
     private Boolean isActive = true;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean isProUser = false;
+
+    @Column(name = "pro_expiry_date")
+    private LocalDateTime proExpiryDate;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

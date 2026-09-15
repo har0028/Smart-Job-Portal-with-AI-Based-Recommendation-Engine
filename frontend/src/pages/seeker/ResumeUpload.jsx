@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { Upload, FileText, CheckCircle, AlertCircle } from 'lucide-react'
+import { Upload, FileText, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react'
 import { seekerApi } from '../../api/seekerApi'
 import { PageSpinner } from '../../components/common/Spinner'
+import { MotionPage } from '../../components/common/MotionContainer'
+import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
+
+import ResumeJobMatcher from '../../components/common/ResumeJobMatcher'
 
 export default function ResumeUpload() {
   const [profile, setProfile]   = useState(null)
@@ -21,7 +25,7 @@ export default function ResumeUpload() {
   const uploadFile = async (file) => {
     if (!file) return
     if (file.type !== 'application/pdf') {
-      toast.error('Only PDF files are allowed')
+      toast.error('Only PDF files are supported for server upload')
       return
     }
     if (file.size > 5 * 1024 * 1024) {
@@ -35,7 +39,7 @@ export default function ResumeUpload() {
     try {
       const res = await seekerApi.uploadResume(formData)
       setProfile(prev => ({ ...prev, resumeUrl: res.data.data }))
-      toast.success('Resume uploaded successfully!')
+      toast.success('Resume uploaded & indexed successfully!')
     } catch (err) {
       toast.error(err.response?.data?.message || 'Upload failed')
     } finally {
@@ -53,87 +57,43 @@ export default function ResumeUpload() {
   if (loading) return <PageSpinner />
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
+    <MotionPage className="max-w-4xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Resume Upload</h1>
-        <p className="text-sm text-gray-500 mt-1">Upload your resume in PDF format (max 5MB)</p>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold mb-2">
+          <Upload className="h-3.5 w-3.5" />
+          <span>AI Resume Document Vectorization</span>
+        </div>
+        <h1 className="text-3xl font-display font-extrabold text-white tracking-tight">Resume Upload & Instant Matching</h1>
+        <p className="text-slate-400 text-sm mt-1">Upload your PDF resume to index your skills and discover your top vector-matched jobs.</p>
       </div>
 
-      {/* Current resume */}
+      {/* Current Resume Banner */}
       {profile?.resumeUrl && (
-        <div className="card flex items-center gap-4">
-          <div className="h-12 w-12 rounded-xl bg-green-100 flex items-center justify-center shrink-0">
-            <CheckCircle className="h-6 w-6 text-green-600" />
+        <div className="glass-panel p-6 border border-emerald-500/30 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+              <CheckCircle2 className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="font-bold text-white text-sm">Resume On File</p>
+              <p className="text-xs text-slate-400 truncate max-w-sm">{profile.resumeUrl}</p>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-medium text-gray-900">Resume on file</p>
-            <p className="text-xs text-gray-400 truncate">{profile.resumeUrl}</p>
-          </div>
+
           <a
             href={`${import.meta.env.VITE_API_BASE_URL}/${profile.resumeUrl}`}
             target="_blank"
             rel="noreferrer"
-            className="btn-secondary text-sm flex items-center gap-1.5 shrink-0"
+            className="btn-secondary text-xs flex items-center gap-2 py-2 px-4"
           >
-            <FileText className="h-4 w-4" /> View
+            <FileText className="h-4 w-4 text-indigo-400" /> View Document
           </a>
         </div>
       )}
 
-      {/* Upload zone */}
-      <div
-        onDragOver={e => { e.preventDefault(); setDragOver(true) }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={handleDrop}
-        onClick={() => !uploading && fileRef.current?.click()}
-        className={`card cursor-pointer border-2 border-dashed transition-colors text-center py-14
-          ${dragOver ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-300 hover:bg-gray-50'}
-          ${uploading ? 'pointer-events-none opacity-60' : ''}`}
-      >
-        <div className="flex flex-col items-center gap-3">
-          {uploading ? (
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600" />
-          ) : (
-            <div className="h-14 w-14 rounded-2xl bg-primary-100 flex items-center justify-center">
-              <Upload className="h-7 w-7 text-primary-600" />
-            </div>
-          )}
-          <div>
-            <p className="font-semibold text-gray-900">
-              {uploading ? 'Uploading...' : 'Drop your resume here or click to browse'}
-            </p>
-            <p className="text-sm text-gray-400 mt-1">PDF only, maximum 5MB</p>
-          </div>
-          {!uploading && (
-            <button type="button" className="btn-primary text-sm px-6">
-              Choose File
-            </button>
-          )}
-        </div>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="application/pdf"
-          className="hidden"
-          onChange={e => uploadFile(e.target.files[0])}
-        />
-      </div>
+      {/* Instant AI Resume Matcher Component */}
+      <ResumeJobMatcher />
 
-      {/* Tips */}
-      <div className="card bg-blue-50 border-blue-200">
-        <div className="flex gap-3">
-          <AlertCircle className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-800 space-y-1">
-            <p className="font-medium">Resume tips</p>
-            <ul className="list-disc list-inside space-y-0.5 text-blue-700">
-              <li>Use a clean, ATS-friendly format</li>
-              <li>Include all relevant skills and experience</li>
-              <li>Keep it to 1–2 pages</li>
-              <li>Use PDF to preserve formatting across devices</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
+    </MotionPage>
   )
 }

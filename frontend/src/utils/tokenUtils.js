@@ -24,10 +24,23 @@ export const tokenUtils = {
   isTokenExpired: (token) => {
     if (!token) return true
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]))
-      return payload.exp * 1000 < Date.now()
-    } catch {
-      return true
+      let base64Url = token.split('.')[1]
+      if (!base64Url) return true
+      let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      while (base64.length % 4) {
+        base64 += '='
+      }
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      )
+      const payload = JSON.parse(jsonPayload)
+      return payload.exp ? payload.exp * 1000 < Date.now() : false
+    } catch (err) {
+      console.warn('JWT parse warning:', err)
+      return false
     }
   },
 }

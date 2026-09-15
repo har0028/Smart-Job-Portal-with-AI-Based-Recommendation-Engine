@@ -59,6 +59,13 @@ public class Job {
     @Builder.Default
     private JobStatus status = JobStatus.ACTIVE;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean isFeatured = false;
+
+    @Column(name = "featured_until")
+    private LocalDateTime featuredUntil;
+
     @CreatedDate
     @Column(name = "posted_at", nullable = false, updatable = false)
     private LocalDateTime postedAt;

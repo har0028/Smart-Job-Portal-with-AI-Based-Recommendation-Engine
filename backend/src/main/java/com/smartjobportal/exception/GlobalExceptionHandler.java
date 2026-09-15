@@ -76,10 +76,14 @@ public class GlobalExceptionHandler {
             errors.put(fieldName, errorMessage);
         });
         log.warn("Validation failed: {}", errors);
+
+        String firstError = errors.values().stream().findFirst().orElse("Invalid input data");
+        String summaryMessage = "Validation failed: " + firstError;
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.<Map<String, String>>builder()
                         .success(false)
-                        .message("Validation failed")
+                        .message(summaryMessage)
                         .data(errors)
                         .build());
     }

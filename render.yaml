@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: smart-job-portal-web
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeploy: true
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update

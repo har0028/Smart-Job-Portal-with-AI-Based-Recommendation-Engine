@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
+import LandingPage from '../pages/public/LandingPage'
+
 // Auth
 import LoginPage    from '../pages/auth/LoginPage'
 import RegisterPage from '../pages/auth/RegisterPage'
@@ -11,6 +13,7 @@ import AdminUsers       from '../pages/admin/AdminUsers'
 import AdminRecruiters  from '../pages/admin/AdminRecruiters'
 import AdminJobs        from '../pages/admin/AdminJobs'
 import AdminAnalytics   from '../pages/admin/AdminAnalytics'
+import AdminRevenue     from '../pages/admin/AdminRevenue'
 
 // Recruiter
 import RecruiterDashboard from '../pages/recruiter/RecruiterDashboard'
@@ -29,6 +32,7 @@ import JobDetail         from '../pages/seeker/JobDetail'
 import SavedJobs         from '../pages/seeker/SavedJobs'
 import MyApplications    from '../pages/seeker/MyApplications'
 import Recommendations   from '../pages/seeker/Recommendations'
+import SeekerProUpgrade  from '../pages/seeker/SeekerProUpgrade'
 
 // Layouts
 import AdminLayout    from '../components/common/AdminLayout'
@@ -59,8 +63,8 @@ function GuestOnly({ children }) {
 export default function AppRouter() {
   return (
     <Routes>
-      {/* Root redirect */}
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      {/* Public Landing */}
+      <Route path="/" element={<LandingPage />} />
 
       {/* Auth */}
       <Route path="/login"    element={<GuestOnly><LoginPage /></GuestOnly>} />
@@ -70,6 +74,7 @@ export default function AppRouter() {
       <Route path="/admin" element={<RequireAuth role="ADMIN"><AdminLayout /></RequireAuth>}>
         <Route index                element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard"     element={<AdminDashboard />} />
+        <Route path="revenue"       element={<AdminRevenue />} />
         <Route path="users"         element={<AdminUsers />} />
         <Route path="recruiters"    element={<AdminRecruiters />} />
         <Route path="jobs"          element={<AdminJobs />} />
@@ -90,6 +95,7 @@ export default function AppRouter() {
       <Route path="/seeker" element={<RequireAuth role="JOB_SEEKER"><SeekerLayout /></RequireAuth>}>
         <Route index                    element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard"         element={<SeekerDashboard />} />
+        <Route path="pro-upgrade"       element={<SeekerProUpgrade />} />
         <Route path="profile"           element={<ProfilePage />} />
         <Route path="skills"            element={<SkillManagement />} />
         <Route path="resume"            element={<ResumeUpload />} />

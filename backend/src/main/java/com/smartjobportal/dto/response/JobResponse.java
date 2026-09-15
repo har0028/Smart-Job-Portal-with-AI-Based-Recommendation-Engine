@@ -22,6 +22,8 @@ public class JobResponse {
     private JobStatus status;
     private LocalDateTime postedAt;
     private LocalDateTime expiresAt;
+    private Boolean isFeatured;
+    private LocalDateTime featuredUntil;
     private String companyName;
     private String recruiterName;
     private Long recruiterId;

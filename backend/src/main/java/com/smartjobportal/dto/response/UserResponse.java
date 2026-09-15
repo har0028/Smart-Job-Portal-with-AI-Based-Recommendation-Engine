@@ -15,5 +15,7 @@ public class UserResponse {
     private String email;
     private Role role;
     private Boolean isActive;
+    private Boolean isProUser;
+    private LocalDateTime proExpiryDate;
     private LocalDateTime createdAt;
 }

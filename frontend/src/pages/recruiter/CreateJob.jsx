@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { jobApi } from '../../api/jobApi'
 import JobForm from '../../components/recruiter/JobForm'
+import { MotionPage } from '../../components/common/MotionContainer'
+import { PlusCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export default function CreateJob() {
@@ -12,7 +14,7 @@ export default function CreateJob() {
     setLoading(true)
     try {
       await jobApi.createJob(data)
-      toast.success('Job posted successfully!')
+      toast.success('Job position posted successfully!')
       navigate('/recruiter/jobs')
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to create job')
@@ -22,14 +24,19 @@ export default function CreateJob() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
+    <MotionPage className="max-w-3xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Post a New Job</h1>
-        <p className="text-sm text-gray-500 mt-1">Fill in the details to attract the right candidates</p>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-300 text-xs font-semibold mb-2">
+          <PlusCircle className="h-3.5 w-3.5" />
+          <span>New Enterprise Position</span>
+        </div>
+        <h1 className="text-3xl font-display font-extrabold text-white tracking-tight">Post a New Job</h1>
+        <p className="text-slate-400 text-sm mt-1">Specify role details and required skills to trigger AI candidate matching.</p>
       </div>
-      <div className="card">
+
+      <div className="glass-panel p-8 border border-white/15">
         <JobForm onSubmit={handleSubmit} loading={loading} />
       </div>
-    </div>
+    </MotionPage>
   )
 }

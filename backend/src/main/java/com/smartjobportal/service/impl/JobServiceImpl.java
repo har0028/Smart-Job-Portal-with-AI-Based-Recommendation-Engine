@@ -27,6 +27,7 @@ public class JobServiceImpl implements JobService {
     private final JobSkillRepository jobSkillRepository;
     private final SkillRepository skillRepository;
     private final RecruiterProfileRepository recruiterProfileRepository;
+    private final com.smartjobportal.service.NotificationService notificationService;
 
     @Override
     @Transactional
@@ -53,7 +54,9 @@ public class JobServiceImpl implements JobService {
         }
 
         log.info("Job created: '{}' by recruiter userId={}", job.getTitle(), userId);
-        return mapToResponse(jobRepository.findById(job.getId()).orElseThrow());
+        Job savedJob = jobRepository.findById(job.getId()).orElseThrow();
+        notificationService.notifyJobSeekersForNewJob(savedJob);
+        return mapToResponse(savedJob);
     }
 
     @Override
@@ -171,6 +174,8 @@ public class JobServiceImpl implements JobService {
                 .status(job.getStatus())
                 .postedAt(job.getPostedAt())
                 .expiresAt(job.getExpiresAt())
+                .isFeatured(job.getIsFeatured())
+                .featuredUntil(job.getFeaturedUntil())
                 .companyName(job.getRecruiterProfile().getCompanyName())
                 .recruiterName(job.getRecruiterProfile().getUser().getFullName())
                 .recruiterId(job.getRecruiterProfile().getId())

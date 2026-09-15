@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
-import { ClipboardList, Trash2 } from 'lucide-react'
+import { ClipboardList, Trash2, CheckCircle2, Clock, Sparkles } from 'lucide-react'
 import { seekerApi } from '../../api/seekerApi'
 import Badge from '../../components/common/Badge'
 import ConfirmDialog from '../../components/common/ConfirmDialog'
 import EmptyState from '../../components/common/EmptyState'
 import { PageSpinner } from '../../components/common/Spinner'
 import { formatDate } from '../../utils/dateUtils'
+import { MotionPage, MotionGrid, MotionItem } from '../../components/common/MotionContainer'
+import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 
 const STATUS_ORDER = ['PENDING', 'REVIEWING', 'SHORTLISTED', 'HIRED', 'REJECTED']
@@ -43,89 +45,104 @@ export default function MyApplications() {
   if (loading) return <PageSpinner />
 
   return (
-    <div className="space-y-5 animate-fade-in">
+    <MotionPage className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">My Applications</h1>
-        <p className="text-sm text-gray-500 mt-1">{apps.length} total applications</p>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-300 text-xs font-semibold mb-2">
+          <ClipboardList className="h-3.5 w-3.5" />
+          <span>Real-time Application Tracker</span>
+        </div>
+        <h1 className="text-3xl font-display font-extrabold text-white tracking-tight">My Applications</h1>
+        <p className="text-slate-400 text-sm mt-1">{apps.length} active application trajectories</p>
       </div>
 
-      {/* Status filter tabs */}
-      <div className="flex gap-2 flex-wrap">
-        {['ALL', ...STATUS_ORDER].map(s => (
-          <button
-            key={s}
-            onClick={() => setFilter(s)}
-            className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${
-              filter === s
-                ? 'bg-primary-100 border-primary-300 text-primary-700'
-                : 'border-gray-200 text-gray-500 hover:border-gray-300'
-            }`}
-          >
-            {s === 'ALL' ? 'All' : s}
-            {s === 'ALL'
-              ? ` (${apps.length})`
-              : ` (${apps.filter(a => a.status === s).length})`
-            }
-          </button>
-        ))}
+      {/* Filter Tabs */}
+      <div className="flex gap-2 flex-wrap pb-2 border-b border-white/10">
+        {['ALL', ...STATUS_ORDER].map(s => {
+          const isSelected = filter === s
+          const count = s === 'ALL' ? apps.length : apps.filter(a => a.status === s).length
+          return (
+            <button
+              key={s}
+              onClick={() => setFilter(s)}
+              className={`text-xs px-3.5 py-1.5 rounded-xl font-bold transition-all duration-200 ${
+                isSelected
+                  ? 'bg-brand-500/20 border border-brand-500 text-white shadow-glow-sm'
+                  : 'bg-slate-900/60 border border-white/10 text-slate-400 hover:text-white'
+              }`}
+            >
+              {s === 'ALL' ? 'All Applications' : s} ({count})
+            </button>
+          )
+        })}
       </div>
 
       {displayed.length === 0 ? (
-        <EmptyState icon={ClipboardList} title="No applications found" description="Start applying to jobs to track your progress here." />
+        <EmptyState 
+          icon={ClipboardList} 
+          title="No applications in this pipeline state" 
+          description="Submit applications to job openings to track live status updates here." 
+        />
       ) : (
-        <div className="space-y-3">
+        <MotionGrid className="space-y-4">
           {displayed.map(app => (
-            <div key={app.id} className="card hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between gap-4 flex-wrap">
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900">{app.jobTitle}</p>
-                  <p className="text-sm text-primary-600 font-medium">{app.companyName}</p>
-                  <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-400">
-                    <span>Applied {formatDate(app.appliedAt)}</span>
-                    <span>Match: <strong className="text-gray-600">{app.matchScore?.toFixed(1)}%</strong></span>
+            <MotionItem key={app.id}>
+              <div className="glass-card p-6 border border-white/10 hover:border-brand-500/30">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-white text-base">{app.jobTitle}</h3>
+                    <p className="text-xs font-semibold text-brand-300 mt-0.5">{app.companyName}</p>
+                    
+                    <div className="flex flex-wrap gap-4 mt-3 text-xs text-slate-400">
+                      <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" />Applied {formatDate(app.appliedAt)}</span>
+                      {app.matchScore !== undefined && (
+                        <span className="flex items-center gap-1.5 text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                          <Sparkles className="h-3 w-3" />
+                          {app.matchScore?.toFixed(0)}% Vector Match
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <Badge status={app.status} />
+                    {app.status === 'PENDING' && (
+                      <button
+                        onClick={() => setConfirm(app)}
+                        className="p-2 rounded-xl bg-slate-950/60 border border-white/10 hover:border-rose-500/40 text-slate-400 hover:text-rose-400 transition-colors"
+                        title="Withdraw application"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Badge status={app.status} />
-                  {app.status === 'PENDING' && (
-                    <button
-                      onClick={() => setConfirm(app)}
-                      className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500"
-                      title="Withdraw application"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
 
-              {/* Progress bar */}
-              <div className="mt-4 pt-3 border-t border-gray-100">
-                <div className="flex items-center gap-1">
-                  {STATUS_ORDER.filter(s => s !== 'REJECTED').map((s, i, arr) => {
-                    const currentIdx = arr.indexOf(app.status)
-                    const stepIdx    = arr.indexOf(s)
-                    const done       = app.status === 'REJECTED'
-                      ? false
-                      : stepIdx <= currentIdx
-                    return (
-                      <div key={s} className="flex items-center flex-1">
-                        <div className={`h-2 rounded-full flex-1 transition-colors ${done ? 'bg-primary-500' : 'bg-gray-200'}`} />
-                        {i < arr.length - 1 && <div className="w-1" />}
-                      </div>
-                    )
-                  })}
-                </div>
-                <div className="flex justify-between text-xs text-gray-400 mt-1">
-                  <span>Pending</span>
-                  <span>Reviewing</span>
-                  <span>Shortlisted</span>
-                  <span>Hired</span>
+                {/* Animated Pipeline Stage Bar */}
+                <div className="mt-5 pt-4 border-t border-white/5">
+                  <div className="flex items-center gap-1.5">
+                    {STATUS_ORDER.filter(s => s !== 'REJECTED').map((s, i, arr) => {
+                      const currentIdx = arr.indexOf(app.status)
+                      const stepIdx    = arr.indexOf(s)
+                      const isDone     = app.status === 'REJECTED' ? false : stepIdx <= currentIdx
+                      return (
+                        <div key={s} className="flex items-center flex-1">
+                          <div className={`h-2 rounded-full flex-1 transition-all duration-300 ${isDone ? 'bg-gradient-to-r from-brand-500 to-accent-violet shadow-glow-sm' : 'bg-slate-800'}`} />
+                          {i < arr.length - 1 && <div className="w-1" />}
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <div className="flex justify-between text-[11px] font-medium text-slate-400 mt-2 px-1">
+                    <span>Pending</span>
+                    <span>Reviewing</span>
+                    <span>Shortlisted</span>
+                    <span>Hired</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            </MotionItem>
           ))}
-        </div>
+        </MotionGrid>
       )}
 
       <ConfirmDialog
@@ -134,10 +151,10 @@ export default function MyApplications() {
         onConfirm={handleWithdraw}
         loading={withdrawing}
         title="Withdraw Application"
-        message={`Withdraw your application for "${confirm?.jobTitle}"?`}
+        message={`Are you sure you want to withdraw your application for "${confirm?.jobTitle}"?`}
         confirmLabel="Withdraw"
         danger
       />
-    </div>
+    </MotionPage>
   )
 }

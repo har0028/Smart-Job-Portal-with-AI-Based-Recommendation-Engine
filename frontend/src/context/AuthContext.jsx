@@ -43,12 +43,21 @@ export function AuthProvider({ children }) {
     setUser(null)
   }, [])
 
+  const updateUserAvatar = useCallback((avatarUrl) => {
+    setUser((prev) => {
+      if (!prev) return prev
+      const updated = { ...prev, avatar: avatarUrl }
+      tokenUtils.setUser(updated)
+      return updated
+    })
+  }, [])
+
   const isAdmin     = user?.role === 'ADMIN'
   const isRecruiter = user?.role === 'RECRUITER'
   const isSeeker    = user?.role === 'JOB_SEEKER'
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, isAdmin, isRecruiter, isSeeker }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUserAvatar, isAdmin, isRecruiter, isSeeker }}>
       {children}
     </AuthContext.Provider>
   )

@@ -35,6 +35,8 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configure(http))
             .authorizeHttpRequests(auth -> auth
+                // Static assets and frontend SPA routing
+                .requestMatchers("/", "/index.html", "/assets/**", "/*.jpg", "/*.png", "/*.svg", "/*.ico", "/*.js", "/*.css").permitAll()
                 // Public endpoints
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/jobs", "/api/jobs/{id}").permitAll()
@@ -51,6 +53,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/jobs/{id}/apply").hasRole("JOB_SEEKER")
                 .requestMatchers(HttpMethod.POST, "/api/jobs/{id}/save").hasRole("JOB_SEEKER")
                 .requestMatchers(HttpMethod.DELETE, "/api/jobs/{id}/save").hasRole("JOB_SEEKER")
+                // Allow non-API SPA frontend routes
+                .requestMatchers(request -> !request.getRequestURI().startsWith("/api/")).permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session ->
