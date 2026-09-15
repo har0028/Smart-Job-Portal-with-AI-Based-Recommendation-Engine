@@ -392,14 +392,22 @@ export default function LandingPage() {
       {/* ========================================== */}
       {/* 2. TRUSTED COMPANIES LOGO SECTION          */}
       {/* ========================================== */}
-      <section className="py-8 border-y border-white/[0.08] bg-[#090d17] relative">
+      <section className="py-8 border-y border-white/[0.08] bg-[#090d17] relative overflow-hidden">
+        {/* Subtle fade gradient masks at left and right edges for a premium SaaS look */}
+        <div className="absolute inset-y-0 left-0 w-16 sm:w-32 bg-gradient-to-r from-[#090d17] to-transparent z-10 pointer-events-none" />
+        <div className="absolute inset-y-0 right-0 w-16 sm:w-32 bg-gradient-to-l from-[#090d17] to-transparent z-10 pointer-events-none" />
+
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-6">
             Trusted by Talent Teams at Innovative Tech Leaders
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12 opacity-80 hover:opacity-100 transition-opacity">
-            {topCompanies.map((comp, idx) => (
-              <div key={idx} className="flex items-center gap-2 group cursor-pointer">
+        </div>
+
+        {/* Infinite Marquee Track Container */}
+        <div className="flex overflow-hidden relative w-full">
+          <div className="animate-marquee flex gap-8 sm:gap-12 items-center shrink-0">
+            {[...topCompanies, ...topCompanies, ...topCompanies, ...topCompanies].map((comp, idx) => (
+              <div key={idx} className="flex items-center gap-2 group cursor-pointer shrink-0 opacity-80 hover:opacity-100 transition-opacity">
                 <CompanyLogo name={comp.name} className="h-6 w-6 grayscale group-hover:grayscale-0 transition-all" />
                 <span className="font-display font-semibold text-slate-300 group-hover:text-white text-sm sm:text-base tracking-tight">
                   {comp.name}
