@@ -37,8 +37,9 @@ public class DatabaseConfig {
         }
 
         String driverClassName = "org.h2.Driver";
+        boolean isPostgres = dbUrl != null && (dbUrl.startsWith("postgres://") || dbUrl.startsWith("postgresql://") || dbUrl.startsWith("jdbc:postgresql://"));
 
-        if (dbUrl != null && (dbUrl.startsWith("postgres://") || dbUrl.startsWith("postgresql://") || dbUrl.startsWith("jdbc:postgresql://"))) {
+        if (isPostgres) {
             driverClassName = "org.postgresql.Driver";
             if (dbUrl.startsWith("postgres://") || dbUrl.startsWith("postgresql://")) {
                 try {
@@ -65,14 +66,23 @@ public class DatabaseConfig {
             } else if (!dbUrl.contains("sslmode=")) {
                 dbUrl += (dbUrl.contains("?") ? "&" : "?") + "sslmode=require";
             }
-        } else if (dbUrl != null && dbUrl.startsWith("jdbc:mysql://")) {
-            driverClassName = "com.mysql.cj.jdbc.Driver";
-        } else {
+        }
+
+        // Safety check: if PostgreSQL lacks password, fall back to embedded H2 to prevent startup failure
+        if (isPostgres && (password == null || password.isBlank())) {
+            log.warn("PostgreSQL URL configured but no password provided. Falling back to embedded H2 database for zero-downtime startup.");
             dbUrl = "jdbc:h2:mem:smartjobdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL";
             driverClassName = "org.h2.Driver";
             username = "sa";
             password = "";
-            log.info("Using embedded H2 database fallback for application context");
+        } else if (!isPostgres && (dbUrl == null || dbUrl.isBlank() || dbUrl.startsWith("jdbc:h2:"))) {
+            dbUrl = "jdbc:h2:mem:smartjobdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL";
+            driverClassName = "org.h2.Driver";
+            username = "sa";
+            password = "";
+            log.info("Using embedded H2 database for application context");
+        } else if (!isPostgres) {
+            driverClassName = "com.mysql.cj.jdbc.Driver";
         }
 
         log.info("Initializing DataSource with driver: {} and URL: {}", driverClassName, dbUrl);
